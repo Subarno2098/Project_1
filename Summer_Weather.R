@@ -355,34 +355,42 @@ my_raster.by <- crop(my_raster, bnd.utm.by)
 my_raster.by <- mask(my_raster.by, bnd.utm.by)
 
 # visual check
-plot(my_raster.by,1)
-
-# For-loop calculating mean of each raster and save it in data.frame
-for (i in 1:length(my_years)){
-  current_layer <- my_raster.by[[i]]
-  # current_mean <- mean(current_layer@data@values, na.rm=T)
-  current_mean <- mean(getValues(current_layer), na.rm=T)
-  my_df[i,2] <- current_mean/10
-  rm(current_layer, current_mean, i)
-}
-
-# check data frame structure/content
-my_df
-
-# Plot resulting dataframe and perform a regression analysis to display a trend line
-pdf("timeseries_mean_temp_BY.pdf",width=15,height=8)
-ggplot(my_df, aes(x=Year, y=Mean_Temp))+
-  geom_point(size=2)+
-  geom_line()+
-  geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
-  labs(title="Time Series of Mean Temperature Across Bavaria in August", 
-       x="Year", y="Mean Temperature in ?C") +
-  theme(plot.title = element_text(hjust = 0.5))
-dev.off()
-
-plot(my_df)
+plot(my_raster.by,1:10)
+brick(my_raster.by)
 
 
-brick(my_df)
-brick(my_raster)
-      
+
+
+
+
+
+
+# # For-loop calculating mean of each raster and save it in data.frame
+# for (i in 1:length(my_years)){
+#   current_layer <- my_raster.by[[i]]
+#   # current_mean <- mean(current_layer@data@values, na.rm=T)
+#   current_mean <- mean(getValues(current_layer), na.rm=T)
+#   my_df[i,2] <- current_mean/10
+#   rm(current_layer, current_mean, i)
+# }
+# 
+# # check data frame structure/content
+# my_df
+# 
+# # Plot resulting dataframe and perform a regression analysis to display a trend line
+# pdf("timeseries_mean_temp_BY.pdf",width=15,height=8)
+# ggplot(my_df, aes(x=Year, y=Mean_Temp))+
+#   geom_point(size=2)+
+#   geom_line()+
+#   geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
+#   labs(title="Time Series of Mean Temperature Across Bavaria in August", 
+#        x="Year", y="Mean Temperature in ?C") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# dev.off()
+# 
+# plot(my_df)
+# 
+# 
+# brick(my_df)
+# brick(my_raster)
+#       
