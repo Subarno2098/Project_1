@@ -358,11 +358,11 @@ my_raster.by <- mask(my_raster.by, bnd.utm.by)
 plot(my_raster.by,1:10)
 brick(my_raster.by)
 
+library(gganimate)
+library(ggplot2)
 
 
-
-
-
+raster::animate(my_raster.by)
 
 
 # # For-loop calculating mean of each raster and save it in data.frame
