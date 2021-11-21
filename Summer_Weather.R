@@ -62,7 +62,7 @@ result_tidy <- result_tidy[c(seq(1,138, by=1))]
 # Define working directory
 
 getwd()
- Define output directory of downloads
+ # Define output directory of downloads
 # create one if not yet there, warning if it exists
 dir.create("DWDdata/")
 
@@ -131,9 +131,14 @@ names(my_raster) <- layer_names
 
 # time-series data, to use for temporal aggregation
 # define the first and last year to grab from the time series 
+
 rasterHist <- my_raster[[grep("1951", layer_names):grep("2020", layer_names)]]
 
+
+
 # year for comparison to long term statistics
+
+
 rasterComp <- my_raster$Year_2020
 
 # Add Coordinate Reference System to rasterstack
@@ -149,8 +154,8 @@ rasterComp@crs <- sp::CRS(my_crs)
 # Divide by 10 to get values in C as described in the description pdf on the ftp server:
 # ftp://ftp-cdc.dwd.de/pub/CDC/grids_germany/monthly/air_temperature_mean/
 # DESCRIPTION_gridsgermany_monthly_air_temperature_mean_en.pdf
-#rasterHist <- rasterHist/10
-#rasterComp <- rasterComp/10
+rasterHist <- rasterHist/10
+rasterComp <- rasterComp/10
 
 # Calculate mean temperature between 1961 and 1990
 rasterHist_mean <- mean(rasterHist)
@@ -176,17 +181,53 @@ p1 <- ggR(rasterHist_mean, geom_raster = T)+
   ylab("")
 
 plot(rasterHist)
+rasterHist
 
 
-raster:animate(rasterHist, pause = 3)
+library(ggplot2)
+library(gganimate)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # raster::gganimate(rasterHist,pause=1,main=paste("Year"))
 
 
 #plot(rasterHist[[2]])
 
 
-#library(gganimate)
-animate(p1,pause=0.25,main,zlim,maxpixels=50000,n=10)
+
 
 
 p2 <- ggR(rasterComp, geom_raster = T)+
@@ -278,7 +319,7 @@ for (i in 1:length(my_years)){
 
 # optional: check data frame
 my_df
-
+class(my_df)
 # Plot resulting dataframe and perform a regression analysis to display a trend line
 pdf("timeseries_mean_temp.pdf",width=15,height=8)
 ggplot(my_df, aes(x=Year, y=Mean_Temp))+
@@ -338,3 +379,10 @@ ggplot(my_df, aes(x=Year, y=Mean_Temp))+
        x="Year", y="Mean Temperature in ?C") +
   theme(plot.title = element_text(hjust = 0.5))
 dev.off()
+
+plot(my_df)
+
+
+brick(my_df)
+brick(my_raster)
+      
