@@ -18,7 +18,7 @@ result_tidy <- result_tidy[[1]]
 result_tidy <- sort(result_tidy, decreasing = F)
 
 # Delete first entry which is empty because of the previously applied pattern
-result_tidy <- result_tidy[3:length(result_tidy)]
+result_tidy <- result_tidy[3:length(result_tidy)]s
 
 # Data can already be subsetted to desired years e.g. 1961-2018
 # 1: 1881

@@ -123,7 +123,7 @@ my_raster
 # Change names of raster layers
 # adapt sequence in case you subsetted the data before
 
-layer_names <- c(paste0("Year ", seq(1951, 2020, by=1)))
+layer_names <- c(paste0(" Year ", seq(1951, 2020, by=1)))
 names(my_raster) <- layer_names
 layer_names
 # Subset Raster-Stack into old dates and new date
@@ -135,10 +135,8 @@ layer_names
 rasterHist <- my_raster[[grep("1951", layer_names):grep("2020", layer_names)]]
 rasterHist
 
-# year for comparison to long term statistics
 
 
-rasterComp <- my_raster$Year_2020
 
 # Add Coordinate Reference System to rasterstack
 # information extracted from DWD webpage
@@ -146,7 +144,7 @@ rasterComp <- my_raster$Year_2020
 my_crs <- "+init=epsg:31467"
 
 rasterHist@crs <- sp::CRS(my_crs)
-rasterComp@crs <- sp::CRS(my_crs)
+rasterHist
 
 # for temperature only!
 # do NOT use for precipitation or other datasets
@@ -154,10 +152,11 @@ rasterComp@crs <- sp::CRS(my_crs)
 # ftp://ftp-cdc.dwd.de/pub/CDC/grids_germany/monthly/air_temperature_mean/
 # DESCRIPTION_gridsgermany_monthly_air_temperature_mean_en.pdf
 rasterHist <- rasterHist/10
-rasterComp <- rasterComp/10
 
-# Calculate mean temperature between 1961 and 1990
+
+# Calculate mean temperature between 1951 and 2020
 rasterHist_mean <- mean(rasterHist)
+rasterHist_mean
 
 library(RStoolbox)
 library(gridExtra)
@@ -184,173 +183,18 @@ library(raster)
 library(ggplot2)
 library(gganimate)
 
-raster::animate(rasterHist)
 
+# animating rasterHist
+raster::animate(rasterHist, pause=1)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# raster::gganimate(rasterHist,pause=1,main=paste("Year"))
-
-
-#plot(rasterHist[[2]])
-
-
-
-
-
-p2 <- ggR(rasterComp, geom_raster = T)+
-  scale_fill_gradient2(low="blue", mid='yellow', high="red", name ="hot days", na.value = NA, limits=c(minVal,maxVal))+
-  labs(x="",y="")+
-  ggtitle("hot days 2020")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=15))+
-  theme(legend.title = element_text(size = 12, face = "bold"))+
-  theme(legend.text = element_text(size = 10))+
-  theme(axis.text.y = element_text(angle=90))+
-  scale_y_continuous(breaks = seq(5400000,6000000,200000))+
-  xlab("")+
-  ylab("")
-p2
-
-
-pdf("August_mean_vs_2018.pdf", width = 14, height = 8)
-grid.arrange(p1, p2, ncol=2)
-dev.off()
-
-# side-by-side plots, same height, just one legend
-library(RStoolbox)
-df <- ggR(rasterHist_mean, ggObj = FALSE)
-df2 <- ggR(rasterComp, ggObj = FALSE)
-colnames(df)[3] <- colnames(df2)[3] <- "values"
-dfab <- rbind(data.frame(df,band="1961-2017 (mean)"), data.frame(df2,band="2018"))
-
-pdf("August_mean_vs_2018_2.pdf", width = 12, height = 8)
-
-ggplot(dfab, aes(x,y,fill=values))+geom_raster()+facet_grid(.~band)+
-  scale_fill_gradient2(low="blue", mid='yellow', high="red", name ="temperature", na.value = NA, limits=c(minVal,maxVal))+
-  labs(x="",y="")+
-  ggtitle("Differences in Temperatures: August")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=15))+
-  theme(legend.title = element_text(size = 12, face = "bold"))+
-  theme(legend.text = element_text(size = 10))+
-  theme(axis.text.y = element_text(angle=90))+
-  scale_y_continuous(breaks = seq(5400000,6000000,200000))+
-  xlab("")+
-  ylab("")+
-  coord_equal()
-dev.off()
-
-# compute difference of historical and raster to compare with
-raster_diff <- rasterComp - rasterHist_mean
-
-# Create Difference Map
-p3 <- ggR(raster_diff, geom_raster = T)+
-  scale_fill_gradient2(low="blue", mid='yellow', high="red", name ="temp. diff.", na.value = NA)+
-  labs(x="",y="")+
-  ggtitle("Temperature Differences")+
-  theme(plot.title = element_text(hjust = 0.5, face="bold", size=15))+
-  theme(legend.title = element_text(size = 12, face = "bold"))+
-  theme(legend.text = element_text(size = 10))+
-  theme(axis.text.y = element_text(angle=90))+
-  scale_y_continuous(breaks = seq(5400000,6000000,200000))+
-  xlab("")+
-  ylab("")
-
-
-pdf("August_mean_vs_2018_vs_diff.pdf", width = 20, height = 8)
-grid.arrange(p1, p2, p3, ncol=3)
-dev.off()
-
-
-
-#################################
-### Create a time Series plot ###
-#################################
-
-# Add Coordinate Reference System to rasterstack
-my_raster@crs <- sp::CRS(my_crs)
-
-# Defide raster by 10 to get ?C values
-# my_raster <- my_raster/10
-
-# Define dataframe and fill it with the dates
-my_years <- c(seq(1951, 2020, by=1))
-my_mat <- matrix(data = NA, nrow = length(my_years), ncol = 2)
-my_mat[,1] <- my_years
-my_df <- data.frame(my_mat)
-names(my_df) <- c("Year", "Mean_Temp")
-
-# For-loop calculating mean of each raster and save it in data.frame
-for (i in 1:length(my_years)){
-  current_layer <- my_raster[[i]]
-  current_mean <- mean(current_layer@data@values, na.rm=T)
-  my_df[i,2] <- current_mean/10
-  rm(current_layer, current_mean, i)
-}
-
-# optional: check data frame
-my_df
-class(my_df)
-plot(my_df)
-
-
-
-
-
-# Plot resulting dataframe and perform a regression analysis to display a trend line
-pdf("timeseries_mean_temp.pdf",width=15,height=8)
-ggplot(my_df, aes(x=Year, y=Mean_Temp))+
-  geom_point(size=2)+
-  geom_line()+
-  geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
-  labs(title="Time Series of Mean Temperature Across Germany in August", 
-       x="Year", y="Mean Temperature in ?C") +
-  theme(plot.title = element_text(hjust = 0.5))
-dev.off()
-
-# #########
-# split by region and see what the differences are
-# #########
-
-# plot(my_raster,1)
 
 # download boundary data
 bnd <- raster::getData("GADM", country='DEU', level=1)
-bnd.utm <- spTransform(bnd, CRS(proj4string(my_raster)))
+bnd.utm <- spTransform(bnd, CRS(proj4string(rasterHist)))
 
 # visual check
 plot(bnd.utm)
@@ -358,7 +202,7 @@ plot(bnd.utm)
 bnd.utm.by <- bnd.utm[bnd.utm$NAME_1=="Bayern",]
 
 # visual check
-plot(my_raster,1)
+plot(rasterHist,2)
 plot(bnd.utm.by,add=T)
 
 # crop and mask the data
@@ -367,18 +211,12 @@ my_raster.by <- mask(my_raster.by, bnd.utm.by)
 
 # visual check
 plot(my_raster.by,1:10)
-brick(my_raster.by)
-class(my_raster.by)
+
+# animating bayern data
+raster::animate(my_raster.by, pause = 2)
 
 
 
-
-
-library(gganimate)
-library(ggplot2)
-
-
-raster::animate(my_raster.by)
 
 # converting raster data into data frame
 deu_df <- as.data.frame(my_raster.by, xy = TRUE)
@@ -389,60 +227,4 @@ deu_df <- as.data.frame(my_raster.by, xy = TRUE)
 deu_df <- as.data.frame(my_raster.by, xy = TRUE) %>% drop_na()
 head(deu_df)
 class(deu_df)
-plot(my_raster.by)
 names(deu_df)
-
-# converting from wide data frame into a long data frame
-
-
-library(tidyr)
-
-
-
-deu_df1 <- deu_df %>% gather(variable)
-
-
-
-# plotting the data with ggplot
-
-
-
-
-p1 <- ggplot()+geom_raster(data = deu_df, aes(x=x,y=y))
-p1+transition_time(my_years)
-# plotting using ggplot
-
-
-
-
-
-
-# For-loop calculating mean of each raster and save it in data.frame
-for (i in 1:length(my_years)){
-  current_layer <- my_raster.by[[i]]
-  current_mean <- mean(current_layer@data@values, na.rm=T)
-  current_mean <- mean(getValues(current_layer), na.rm=T)
-  my_df[i,2] <- current_mean/10
- rm(current_layer, current_mean, i)
-  }
-# 
- # check data frame structure/content
-my_df
-# 
-# # Plot resulting dataframe and perform a regression analysis to display a trend line
-# pdf("timeseries_mean_temp_BY.pdf",width=15,height=8)
-# ggplot(my_df, aes(x=Year, y=Mean_Temp))+
-#   geom_point(size=2)+
-#   geom_line()+
-#   geom_smooth(method="loess", se=TRUE, formula= y ~ x)+
-#   labs(title="Time Series of Mean Temperature Across Bavaria in August", 
-#        x="Year", y="Mean Temperature in ?C") +
-#   theme(plot.title = element_text(hjust = 0.5))
-# dev.off()
-# 
-# plot(my_df)
-# 
-# 
-# brick(my_df)
-# brick(my_raster)
-#       
