@@ -123,9 +123,9 @@ my_raster
 # Change names of raster layers
 # adapt sequence in case you subsetted the data before
 
-layer_names <- c(paste0("Year_", seq(1951, 2020, by=1)))
+layer_names <- c(paste0("Year ", seq(1951, 2020, by=1)))
 names(my_raster) <- layer_names
-
+layer_names
 # Subset Raster-Stack into old dates and new date
 # select range of historical data to subset
 
@@ -133,8 +133,7 @@ names(my_raster) <- layer_names
 # define the first and last year to grab from the time series 
 
 rasterHist <- my_raster[[grep("1951", layer_names):grep("2020", layer_names)]]
-
-
+rasterHist
 
 # year for comparison to long term statistics
 
@@ -179,13 +178,17 @@ p1 <- ggR(rasterHist_mean, geom_raster = T)+
   scale_y_continuous(breaks = seq(5400000,6000000,200000))+
   xlab("")+
   ylab("")
+p1
 
-plot(rasterHist)
-rasterHist
-
-
+library(raster)
 library(ggplot2)
 library(gganimate)
+
+raster::animate(rasterHist)
+
+
+
+
 
 
 
@@ -241,6 +244,8 @@ p2 <- ggR(rasterComp, geom_raster = T)+
   scale_y_continuous(breaks = seq(5400000,6000000,200000))+
   xlab("")+
   ylab("")
+p2
+
 
 pdf("August_mean_vs_2018.pdf", width = 14, height = 8)
 grid.arrange(p1, p2, ncol=2)
@@ -320,6 +325,12 @@ for (i in 1:length(my_years)){
 # optional: check data frame
 my_df
 class(my_df)
+plot(my_df)
+
+
+
+
+
 # Plot resulting dataframe and perform a regression analysis to display a trend line
 pdf("timeseries_mean_temp.pdf",width=15,height=8)
 ggplot(my_df, aes(x=Year, y=Mean_Temp))+
@@ -371,21 +382,37 @@ raster::animate(my_raster.by)
 
 # converting raster data into data frame
 deu_df <- as.data.frame(my_raster.by, xy = TRUE)
-deu_df <- as.data.frame(my_raster.by, xy = TRUE)
+
 
 # dropping NAs
+
 deu_df <- as.data.frame(my_raster.by, xy = TRUE) %>% drop_na()
 head(deu_df)
+class(deu_df)
+plot(my_raster.by)
+names(deu_df)
+
+# converting from wide data frame into a long data frame
+
+
+library(tidyr)
+
+
+
+deu_df1 <- deu_df %>% gather(variable)
+
 
 
 # plotting the data with ggplot
 
-ggplot()+geom_raster(aes(x=x,y=y),data = deu_df)
 
 
+
+p1 <- ggplot()+geom_raster(data = deu_df, aes(x=x,y=y))
+p1+transition_time(my_years)
 # plotting using ggplot
 
-geom_sf(fill = "transparent", data = rasterHist)
+
 
 
 
