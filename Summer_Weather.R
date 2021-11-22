@@ -357,6 +357,11 @@ my_raster.by <- mask(my_raster.by, bnd.utm.by)
 # visual check
 plot(my_raster.by,1:10)
 brick(my_raster.by)
+class(my_raster.by)
+
+
+
+
 
 library(gganimate)
 library(ggplot2)
@@ -364,18 +369,38 @@ library(ggplot2)
 
 raster::animate(my_raster.by)
 
+# converting raster data into data frame
+deu_df <- as.data.frame(my_raster.by, xy = TRUE)
+deu_df <- as.data.frame(my_raster.by, xy = TRUE)
 
-# # For-loop calculating mean of each raster and save it in data.frame
-# for (i in 1:length(my_years)){
-#   current_layer <- my_raster.by[[i]]
-#   # current_mean <- mean(current_layer@data@values, na.rm=T)
-#   current_mean <- mean(getValues(current_layer), na.rm=T)
-#   my_df[i,2] <- current_mean/10
-#   rm(current_layer, current_mean, i)
-# }
+# dropping NAs
+deu_df <- as.data.frame(my_raster.by, xy = TRUE) %>% drop_na()
+head(deu_df)
+
+
+# plotting the data with ggplot
+
+ggplot()+geom_raster(aes(x=x,y=y),data = deu_df)
+
+
+# plotting using ggplot
+
+geom_sf(fill = "transparent", data = rasterHist)
+
+
+
+
+# For-loop calculating mean of each raster and save it in data.frame
+for (i in 1:length(my_years)){
+  current_layer <- my_raster.by[[i]]
+  current_mean <- mean(current_layer@data@values, na.rm=T)
+  current_mean <- mean(getValues(current_layer), na.rm=T)
+  my_df[i,2] <- current_mean/10
+ rm(current_layer, current_mean, i)
+  }
 # 
-# # check data frame structure/content
-# my_df
+ # check data frame structure/content
+my_df
 # 
 # # Plot resulting dataframe and perform a regression analysis to display a trend line
 # pdf("timeseries_mean_temp_BY.pdf",width=15,height=8)
