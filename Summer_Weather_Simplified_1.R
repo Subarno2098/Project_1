@@ -17,14 +17,14 @@ result_tidy <- result_tidy[[1]]
 # Reorder data frame to alphabetically decreasing file names
 result_tidy <- sort(result_tidy, decreasing = F)
 
-# Delete first entry which is empty because of the previously applied pattern
-result_tidy <- result_tidy[3:length(result_tidy)]s
-
 # Data can already be subsetted to desired years e.g. 1961-2018
 # 1: 1881
 # 80: 1980
 # 138: 2018
-result_tidy <- result_tidy[c(seq(1,138, by=1))]
+result_tidy <- result_tidy[c(seq(1,75, by=1))]
+# Delete first two entries which are empty because of the previously applied pattern
+result_tidy <- result_tidy[4:length(result_tidy)]
+
 
 # Define working directory
 
@@ -113,20 +113,17 @@ my_crs <- "+init=epsg:31467"
 rasterHist@crs <- sp::CRS(my_crs)
 rasterHist
 
-# for temperature only!
-# do NOT use for precipitation or other datasets
-# Divide by 10 to get values in C as described in the description pdf on the ftp server:
-# ftp://ftp-cdc.dwd.de/pub/CDC/grids_germany/monthly/air_temperature_mean/
-# DESCRIPTION_gridsgermany_monthly_air_temperature_mean_en.pdf
-rasterHist <- rasterHist/10
 
-
-# Calculate mean temperature between 1951 and 2020
+# Calculate mean hot days between 1951 and 2020
 rasterHist_mean <- mean(rasterHist)
 rasterHist_mean
 
 library(RStoolbox)
 library(gridExtra)
+
+
+# year for comparison to long term statistics
+rasterComp <- my_raster$Year.2020
 
 maxVal <- max(c(unique(values(rasterComp)),unique(values(rasterHist_mean))),na.rm=T)
 minVal <- min(c(unique(values(rasterComp)),unique(values(rasterHist_mean))),na.rm=T)
@@ -152,7 +149,7 @@ library(gganimate)
 
 
 # animating rasterHist
-raster::animate(rasterHist, pause=1)
+#raster::animate(rasterHist, pause=.7)
 
 
 
@@ -166,6 +163,7 @@ bnd.utm <- spTransform(bnd, CRS(proj4string(rasterHist)))
 # visual check
 plot(bnd.utm)
 
+#subset of Bavaria
 bnd.utm.by <- bnd.utm[bnd.utm$NAME_1=="Bayern",]
 
 # visual check
@@ -184,7 +182,7 @@ my_raster.by
 plot(my_raster.by,1:10)
 
 # animating bayern data
-raster::animate(my_raster.by, pause = 2)
+#raster::animate(my_raster.by, pause = 2,main= "Year {previous_state}") 
 
 
 
@@ -192,11 +190,41 @@ raster::animate(my_raster.by, pause = 2)
 # converting raster data into data frame
 by_df <- as.data.frame(my_raster.by, xy = TRUE)
 
-# checking the classs of by_df
+# checking the class of by_df
 class(by_df)
 
 # dropping NAs
 
 by_df <- as.data.frame(my_raster.by, xy = TRUE) %>% drop_na()
 head(by_df)
+
+# plotting Bavaria data frame with ggplot:
+ggplot(by_df)+
+  geom_raster(aes(x=x,y=y))+
+  geom_polygon(fill='transparent',data=bnd.utm.by,aes(x=x,y=y))
+
+
+
+#------------------------------------------------------------------------------
+#RasterVis package #
+
+library(rasterVis)
+g<-gplot(my_raster$Year.1954) +
+  geom_tile(aes(fill = value))+
+  facet_wrap(~variable)+
+  coord_equal()
+  #transition_states(states =value)
+  
+levelplot(my_raster.by)
+  
+gganimate(g)
+
+#####--------------------------------------------------------------------------
+#rtsVis package 
+
+library(rtsVis)
+
+ts_makeframes(my_raster.by)
+
+
 
