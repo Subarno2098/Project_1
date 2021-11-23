@@ -209,15 +209,32 @@ ggplot(by_df)+
 #RasterVis package #
 
 library(rasterVis)
+library(raster)
+library(animation)
+library(classInt)
 g<-gplot(my_raster$Year.1954) +
   geom_tile(aes(fill = value))+
   facet_wrap(~variable)+
   coord_equal()
   #transition_states(states =value)
   
-levelplot(my_raster.by)
+#levelplot(my_raster.by)
+
+# levelplot(WORKS!!)------------------------------------------------------------
+
+year <- paste("Year:",c(1951:2020))
+colkey <- list(at=seq(0,27,3))
+
+
   
-gganimate(g)
+saveGIF({
+  for(i in c(1:nlayers(my_raster.by))){
+    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=year[i],xlab='Longitude',ylab='Latitude',colorkey=colkey)
+    plot(l)
+  }
+}, interval=0.2, movie.name="animation.gif")
+
+
 
 #####--------------------------------------------------------------------------
 #rtsVis package 
