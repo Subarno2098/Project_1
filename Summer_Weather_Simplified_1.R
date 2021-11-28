@@ -1,7 +1,5 @@
-http <- "ftp://opendata.dwd.de/climate_environment/CDC/grids_germany/annual/hot_days/"
-
-# Data for monthly precitpiation in August can be found on the ftp as well:
-# ftp://opendata.dwd.de/climate_environment ...
+# load DWD data for hot days per year (no. of days with max. temp >= 30°C)
+http <- "ftp://opendata.dwd.de/climate_environment/CDC/grids_germany/annual/hot_days/" 
 
 # List resulting datasets of given url
 # activate library to fetch url infos
@@ -17,12 +15,8 @@ result_tidy <- result_tidy[[1]]
 # Reorder data frame to alphabetically decreasing file names
 result_tidy <- sort(result_tidy, decreasing = F)
 
-# Data can already be subsetted to desired years e.g. 1961-2018
-# 1: 1881
-# 80: 1980
-# 138: 2018
-result_tidy <- result_tidy[c(seq(1,75, by=1))]
-# Delete first two entries which are empty because of the previously applied pattern
+
+# Delete first tree entries which are empty because of the previously applied pattern
 result_tidy <- result_tidy[4:length(result_tidy)]
 
 
@@ -54,7 +48,7 @@ for (i in 1:length(result_tidy)) {
 # ## Define file names and directory
 mypath <- "DWDdata/"
 
-# just grep all "temp" (= temperature) file, instead of "precipitation"
+# just grep all "hot" (= hot days) file
 # check the names in the folder which pattern is appropriate
 hot <- grep("*hot*", list.files(path = mypath, pattern="*.gz$"), value=T)
 
@@ -120,20 +114,15 @@ rasterHist_mean
 
 library(RStoolbox)
 library(gridExtra)
+library(viridis)
 
-
-# year for comparison to long term statistics
-rasterComp <- my_raster$Year.2020
-
-maxVal <- max(c(unique(values(rasterComp)),unique(values(rasterHist_mean))),na.rm=T)
-minVal <- min(c(unique(values(rasterComp)),unique(values(rasterHist_mean))),na.rm=T)
-
+maxVal <- max(unique(values(rasterHist_mean)),na.rm=T)
+minVal <- min(unique(values(rasterHist_mean)),na.rm=T)
 
 p1 <- ggR(rasterHist_mean, geom_raster = T)+
-  scale_fill_gradient2(low="blue", mid='yellow', high="red", name ="hot days", na.value = NA, limits=c(minVal,maxVal))+
-  # , guide = F
+  scale_fill_viridis_c(option="magma",direction=-1,limits=c(minVal,maxVal))+
   labs(x="",y="")+
-  ggtitle("hot days 1951 to 2020")+
+  ggtitle("mean hot days 1951 to 2020")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=15))+
   theme(legend.title = element_text(size = 12, face = "bold"))+
   theme(legend.text = element_text(size = 10))+
@@ -143,20 +132,13 @@ p1 <- ggR(rasterHist_mean, geom_raster = T)+
   ylab("")
 p1
 
-library(raster)
-library(ggplot2)
-library(gganimate)
 
 
-# animating rasterHist
-#raster::animate(rasterHist, pause=.7)
+#######################################
+### Crop data to the extent of Bavaria ###
+#######################################
 
-
-
-
-
-
-# download boundary data
+# download boundary data for germany 
 bnd <- raster::getData("GADM", country='DEU', level=1)
 bnd.utm <- spTransform(bnd, CRS(proj4string(rasterHist)))
 
@@ -181,67 +163,46 @@ my_raster.by
 # visual check
 plot(my_raster.by,1:10)
 
-# animating bayern data
-#raster::animate(my_raster.by, pause = 2,main= "Year {previous_state}") 
 
 
-
-
-# converting raster data into data frame
-by_df <- as.data.frame(my_raster.by, xy = TRUE)
-
-# checking the class of by_df
-class(by_df)
-
-# dropping NAs
-
-by_df <- as.data.frame(my_raster.by, xy = TRUE) %>% drop_na()
-head(by_df)
-
-# plotting Bavaria data frame with ggplot:
-ggplot(by_df)+
-  geom_raster(aes(x=x,y=y))+
-  geom_polygon(fill='transparent',data=bnd.utm.by,aes(x=x,y=y))
-
-
-
-#------------------------------------------------------------------------------
-#RasterVis package #
+#####################################
+### Animation with rasterVis package ###
+#####################################
 
 library(rasterVis)
-library(raster)
 library(animation)
+
 library(classInt)
-g<-gplot(my_raster$Year.1954) +
+
+# plotting data for year 1954
+
+maxVal <- max(unique(values(my_raster.by)),na.rm=T)
+minVal <- min(unique(values(my_raster.by)),na.rm=T)
+
+
+g<-gplot(my_raster.by$Year.1951) +
+  scale_fill_viridis_c(option="magma",direction=-1,limits=c(minVal,maxVal))+
+  ggtitle("hot days in Bavaria in 1954")+
   geom_tile(aes(fill = value))+
   facet_wrap(~variable)+
   coord_equal()
-  #transition_states(states =value)
-  
-#levelplot(my_raster.by)
-
-# levelplot(WORKS!!)------------------------------------------------------------
-
-year <- paste("Year:",c(1951:2020))
-colkey <- list(at=seq(0,27,3))
+g
 
 
-  
+# animating the data using the levelplot function:
+
+years <- paste("Year:",c(1951:2020)) # defining year-vector for subtitles 
+colkey <- list(at=seq(0,51,.5))
+
+
 saveGIF({
   for(i in c(1:nlayers(my_raster.by))){
-    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=year[i],xlab='Longitude',ylab='Latitude',colorkey=colkey)
+    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=years[i],xlab='Longitude',ylab='Latitude',colorkey=colkey)
     plot(l)
   }
-}, interval=0.2, movie.name="animation.gif")
+}, interval=0.2, movie.name="hot_animation.gif")
 
 
-
-#####--------------------------------------------------------------------------
-#rtsVis package 
-
-library(rtsVis)
-
-ts_makeframes(my_raster.by)
 
 
 
