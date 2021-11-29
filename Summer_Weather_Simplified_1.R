@@ -120,7 +120,7 @@ maxVal <- max(unique(values(rasterHist_mean)),na.rm=T)
 minVal <- min(unique(values(rasterHist_mean)),na.rm=T)
 
 p1 <- ggR(rasterHist_mean, geom_raster = T)+
-  scale_fill_viridis_c(option="magma",direction=-1,limits=c(minVal,maxVal))+
+  scale_fill_viridis_c(option="magma",direction=1,limits=c(minVal,maxVal))+
   labs(x="",y="")+
   ggtitle("mean hot days 1951 to 2020")+
   theme(plot.title = element_text(hjust = 0.5, face="bold", size=15))+
@@ -180,9 +180,9 @@ maxVal <- max(unique(values(my_raster.by)),na.rm=T)
 minVal <- min(unique(values(my_raster.by)),na.rm=T)
 
 
-g<-gplot(my_raster.by$Year.1951) +
-  scale_fill_viridis_c(option="magma",direction=-1,limits=c(minVal,maxVal))+
-  ggtitle("hot days in Bavaria in 1954")+
+g<-gplot(my_raster.by[[1:10]]) +
+  scale_fill_viridis_c(option="magma",direction=1,limits=c(minVal,maxVal))+
+  ggtitle("hot days in Bavaria in 2018")+
   geom_tile(aes(fill = value))+
   facet_wrap(~variable)+
   coord_equal()
@@ -192,12 +192,12 @@ g
 # animating the data using the levelplot function:
 
 years <- paste("Year:",c(1951:2020)) # defining year-vector for subtitles 
-colkey <- list(at=seq(0,51,.5))
+colkey <- list(at=seq(minVal,maxVal,.5))
 
 
 saveGIF({
-  for(i in c(1:nlayers(my_raster.by))){
-    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=years[i],xlab='Longitude',ylab='Latitude',colorkey=colkey)
+  for(i in 1:nlayers(my_raster.by)){
+    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=years[i],xlab='Longitude',ylab='Latitude',at=seq(minVal,maxVal,1))
     plot(l)
   }
 }, interval=0.2, movie.name="hot_animation.gif")
