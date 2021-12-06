@@ -197,10 +197,10 @@ colkey <- list(at=seq(minVal,maxVal,.5))
 
 saveGIF({
   for(i in 1:nlayers(my_raster.by)){
-    l <- levelplot(my_raster.by[[i]],margin=F,main="hot days in Bavaria",sub=years[i],xlab='Longitude',ylab='Latitude',at=seq(minVal,maxVal,1))
+    l <- levelplot(my_raster.by[[i]],margin=F,main="Hot Days in Bavaria",sub=years[i],xlab='Longitude',ylab='Latitude',at=seq(minVal,maxVal,1))
     plot(l)
   }
-}, interval=0.2, movie.name="hot_animation.gif")
+}, interval=0.4, movie.name="hot_animation.gif")
 
 
 
